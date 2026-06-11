@@ -73,6 +73,24 @@ async def debug():
     except Exception as e:
         result["templates_error"] = str(e)
         result["traceback"] = traceback.format_exc()
+
+    # Try rendering a page and capture the error
+    try:
+        from database import get_db
+        db = get_db()
+        chapters = db.execute("SELECT * FROM chapters ORDER BY \"order\"").fetchall()
+        db.close()
+        html = templates.get_template("index.html").render({
+            "request": {"url": type('obj', (object,), {"path": "/"})()},
+            "stats": {"chapters": 9, "questions": 26, "concepts": 26, "updates": 8, "total_attempts": 0, "accuracy": 0},
+            "chapters": chapters,
+            "wrong_questions": [],
+        })
+        result["render_test"] = "OK"
+    except Exception as e:
+        result["render_error"] = str(e)
+        result["render_traceback"] = traceback.format_exc()
+
     return result
 
 
