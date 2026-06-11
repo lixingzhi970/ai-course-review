@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}数据导入 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">数据导入</h1>
+    <p class="mt-2 text-gray-600">导入课程课件PDF，使用AI解析章节内容，构建知识库。</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- PDF Upload -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">📤 上传PDF课件</h2>
+        <form id="upload-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">选择章节</label>
+                <select name="chapter_id" id="upload-chapter" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                    {% for ch in chapters %}
+                    <option value="{{ ch.id }}">第{{ ch.order }}章：{{ ch.title[:40] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">选择PDF文件</label>
+                <input type="file" name="file" accept=".pdf" id="pdf-file"
+                       class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
+            </div>
+            <button type="button" class="btn-primary w-full" onclick="uploadPDF()">上传并解析</button>
+            <div id="upload-status" class="hidden text-sm"></div>
+        </form>
+    </div>
+
+    <!-- Courseware Directory -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">📁 课件目录</h2>
+        <p class="text-sm text-gray-500 mb-4">检测到以下课件文件：</p>
+        <div class="text-xs text-gray-400 mb-3">{{ courseware_dir }}</div>
+
+        {% if pdf_files %}
+        <div class="space-y-2 max-h-80 overflow-y-auto">
+            {% for f in pdf_files %}
+            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                <span class="text-sm text-gray-700 truncate flex-1">{{ f }}</span>
+                <span class="text-xs text-gray-400 ml-2">PDF</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p class="text-xs text-blue-700">💡 提示：选择右侧章节 → 选择对应PDF → 点击上传。系统将自动提取文本并存入数据库。</p>
+        </div>
+        {% else %}
+        <div class="p-4 bg-yellow-50 rounded-lg">
+            <p class="text-sm text-yellow-700">未检测到课件文件。请确保PDF文件在课件目录中，或使用上传功能手动导入。</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Chapter Status -->
+    <div class="card lg:col-span-2">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">📊 章节导入状态</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b">
+                        <th class="text-left p-3 font-medium text-gray-700">章节</th>
+                        <th class="text-left p-3 font-medium text-gray-700">状态</th>
+                        <th class="text-left p-3 font-medium text-gray-700">内容长度</th>
+                        <th class="text-left p-3 font-medium text-gray-700">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ch in chapters %}
+                    <tr class="border-b last:border-0">
+                        <td class="p-3 text-gray-900">{{ ch.title[:40] }}</td>
+                        <td class="p-3">
+                            <span class="badge {{ 'bg-green-100 text-green-700' if ch.processing_status == 'done' else 'bg-yellow-100 text-yellow-700' if ch.processing_status == 'extracting' else 'bg-gray-100 text-gray-600' }}">
+                                {{ {'pending':'待导入','extracting':'解析中','processing':'处理中','done':'已完成','error':'错误'}[ch.processing_status] }}
+                            </span>
+                        </td>
+                        <td class="p-3 text-xs text-gray-400">{{ ch.raw_content|length if ch.raw_content else 0 }} 字符</td>
+                        <td class="p-3">
+                            {% if ch.raw_content %}
+                            <button class="text-xs text-accent-600 hover:underline" onclick="processChapter({{ ch.id }})">AI处理</button>
+                            {% else %}
+                            <span class="text-xs text-gray-400">请先上传</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function uploadPDF() {
+    const fileInput = document.getElementById('pdf-file');
+    const chapterId = document.getElementById('upload-chapter').value;
+    const status = document.getElementById('upload-status');
+
+    if (!fileInput.files[0]) {
+        status.classList.remove('hidden');
+        status.innerHTML = '<span class="text-red-600">请选择一个PDF文件</span>';
+        return;
+    }
+
+    status.classList.remove('hidden');
+    status.innerHTML = '<span class="text-gray-500">⏳ 正在上传和解析PDF...</span>';
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('chapter_id', chapterId);
+
+    try {
+        const resp = await fetch('/import/upload', { method: 'POST', body: formData });
+        const data = await resp.json();
+        if (data.success) {
+            status.innerHTML = '<span class="text-green-600">✅ ' + data.message + '</span>';
+        } else {
+            status.innerHTML = '<span class="text-red-600">❌ ' + data.error + '</span>';
+        }
+    } catch(e) {
+        status.innerHTML = '<span class="text-red-600">❌ 上传失败: ' + e.message + '</span>';
+    }
+}
+
+async function processChapter(chapterId) {
+    const status = document.getElementById('upload-status');
+    status.classList.remove('hidden');
+    status.innerHTML = '<span class="text-gray-500">⏳ AI处理中...</span>';
+
+    try {
+        const resp = await fetch('/import/process/' + chapterId, { method: 'POST' });
+        const data = await resp.json();
+        if (data.success) {
+            status.innerHTML = '<span class="text-green-600">✅ ' + data.message + '</span>';
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            status.innerHTML = '<span class="text-red-600">❌ ' + data.error + '</span>';
+        }
+    } catch(e) {
+        status.innerHTML = '<span class="text-red-600">❌ 处理失败: ' + e.message + '</span>';
+    }
+}
+</script>
+{% endblock %}

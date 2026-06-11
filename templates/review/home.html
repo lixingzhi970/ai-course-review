@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}复习辅助 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">复习辅助中心</h1>
+    <p class="mt-2 text-gray-600">学一章 → 做题 → 看解析 → 发现薄弱点 → 回到课件复习，形成完整学习闭环。</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-primary-600">{{ total_practice }}</div>
+        <div class="text-sm text-gray-500 mt-1">总练习量</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-red-600">{{ wrong_count }}</div>
+        <div class="text-sm text-gray-500 mt-1">错题数</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-amber-600">{{ weak_chapters|length }}</div>
+        <div class="text-sm text-gray-500 mt-1">薄弱章节</div>
+    </div>
+</div>
+
+<!-- Weak Chapters -->
+{% if weak_chapters %}
+<div class="card mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">⚠️ 薄弱章节提醒</h2>
+    <div class="space-y-3">
+        {% for wc in weak_chapters %}
+        <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+            <div class="flex items-center gap-3">
+                <span class="text-red-500">📌</span>
+                <div>
+                    <div class="font-medium text-red-900">{{ wc.title }}</div>
+                    <div class="text-sm text-red-600">{{ wc.wrong_count }} 道错题</div>
+                </div>
+            </div>
+            <a href="/review/summary?chapter_id={{ wc.id }}" class="btn-secondary text-xs">去复习</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Review Tools Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a href="/review/summary" class="card group cursor-pointer hover:shadow-lg transition-all">
+        <div class="text-3xl mb-3">📝</div>
+        <h3 class="text-lg font-semibold text-gray-900 group-hover:text-primary-700">章节摘要</h3>
+        <p class="text-sm text-gray-500 mt-2">每章的核心要点、关键概念和学习目标总结，帮助快速回顾。</p>
+    </a>
+
+    <a href="/review/cards" class="card group cursor-pointer hover:shadow-lg transition-all">
+        <div class="text-3xl mb-3">🃏</div>
+        <h3 class="text-lg font-semibold text-gray-900 group-hover:text-primary-700">概念卡片</h3>
+        <p class="text-sm text-gray-500 mt-2">翻转卡片式记忆工具，正面看概念，背面看解释，帮助巩固核心知识。</p>
+    </a>
+
+    <a href="/review/wrong" class="card group cursor-pointer hover:shadow-lg transition-all">
+        <div class="text-3xl mb-3">📋</div>
+        <h3 class="text-lg font-semibold text-gray-900 group-hover:text-primary-700">错题本</h3>
+        <p class="text-sm text-gray-500 mt-2">记录所有错题，根据薄弱点推荐复习内容，避免重复犯错。</p>
+    </a>
+
+    <a href="/practice/quiz" class="card group cursor-pointer hover:shadow-lg transition-all">
+        <div class="text-3xl mb-3">✏️</div>
+        <h3 class="text-lg font-semibold text-gray-900 group-hover:text-primary-700">自测模式</h3>
+        <p class="text-sm text-gray-500 mt-2">限时答题，即时反馈，发现知识盲区，针对性提升。</p>
+    </a>
+</div>
+{% endblock %}

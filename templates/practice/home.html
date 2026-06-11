@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}练习与出题 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">练习与出题</h1>
+    <p class="mt-2 text-gray-600">按章节、题型和难度生成练习题，支持自动出题和手动选题。</p>
+</div>
+
+<!-- Question Type Stats -->
+<div class="grid grid-cols-5 gap-3 mb-8">
+    <div class="card text-center py-4">
+        <div class="text-2xl font-bold text-blue-600">{{ counts.single }}</div>
+        <div class="text-xs text-gray-500 mt-1">单选题</div>
+    </div>
+    <div class="card text-center py-4">
+        <div class="text-2xl font-bold text-purple-600">{{ counts.multiple }}</div>
+        <div class="text-xs text-gray-500 mt-1">多选题</div>
+    </div>
+    <div class="card text-center py-4">
+        <div class="text-2xl font-bold text-green-600">{{ counts.judge }}</div>
+        <div class="text-xs text-gray-500 mt-1">判断题</div>
+    </div>
+    <div class="card text-center py-4">
+        <div class="text-2xl font-bold text-orange-600">{{ counts.short }}</div>
+        <div class="text-xs text-gray-500 mt-1">简答题</div>
+    </div>
+    <div class="card text-center py-4">
+        <div class="text-2xl font-bold text-red-600">{{ counts.case }}</div>
+        <div class="text-xs text-gray-500 mt-1">案例分析</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Quick Start Quiz -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">快速开始练习</h2>
+        <form action="/practice/quiz" method="get" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">选择章节</label>
+                <select name="chapter" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="0">全部章节</option>
+                    {% for ch in chapters %}
+                    <option value="{{ ch.id }}">{{ ch.title[:30] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">题型</label>
+                    <select name="type" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                        <option value="">全部题型</option>
+                        <option value="single">单选题</option>
+                        <option value="multiple">多选题</option>
+                        <option value="judge">判断题</option>
+                        <option value="short">简答题</option>
+                        <option value="case">案例分析题</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">难度</label>
+                    <select name="difficulty" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                        <option value="">全部难度</option>
+                        <option value="基础">基础</option>
+                        <option value="中等">中等</option>
+                        <option value="挑战">挑战</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">题目数量</label>
+                <select name="count" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                    <option value="10">10 道</option>
+                    <option value="20">20 道</option>
+                    <option value="30">30 道</option>
+                    <option value="50">50 道（模拟考试）</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary w-full py-3 text-base">开始答题</button>
+        </form>
+    </div>
+
+    <!-- AI Question Generation -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">AI 智能出题</h2>
+        <p class="text-sm text-gray-500 mb-4">根据课程内容自动生成高质量考题。题目包含标准答案、详细解析和学习目标对应。</p>
+        <form id="generate-form" class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">选择章节</label>
+                <select name="chapter_id" id="gen-chapter" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-accent-500">
+                    {% for ch in chapters %}
+                    <option value="{{ ch.id }}">{{ ch.title[:30] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">题型</label>
+                    <select name="question_type" id="gen-type" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        <option value="single">单选题</option>
+                        <option value="multiple">多选题</option>
+                        <option value="judge">判断题</option>
+                        <option value="short">简答题</option>
+                        <option value="case">案例分析题</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">难度</label>
+                    <select name="difficulty" id="gen-difficulty" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        <option value="基础">基础</option>
+                        <option value="中等">中等</option>
+                        <option value="挑战">挑战</option>
+                    </select>
+                </div>
+            </div>
+            <div class="hidden">
+                <input type="number" name="count" value="3" id="gen-count">
+            </div>
+            <button type="button" id="generate-btn" class="btn-accent w-full py-3 text-base" onclick="generateQuestions()">
+                🤖 AI 生成题目
+            </button>
+            <div id="generate-status" class="hidden text-sm text-center"></div>
+        </form>
+    </div>
+</div>
+
+<!-- Recent Generated Questions -->
+<div id="generated-questions" class="mt-6 hidden">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">生成的题目</h2>
+    <div id="questions-list" class="space-y-3"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function generateQuestions() {
+    const btn = document.getElementById('generate-btn');
+    const status = document.getElementById('generate-status');
+    const resultDiv = document.getElementById('generated-questions');
+    const listDiv = document.getElementById('questions-list');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ 生成中...';
+    status.classList.remove('hidden');
+    status.innerHTML = '<span class="text-gray-500">正在调用AI生成题目，请稍候...</span>';
+
+    const formData = new FormData();
+    formData.append('chapter_id', document.getElementById('gen-chapter').value);
+    formData.append('question_type', document.getElementById('gen-type').value);
+    formData.append('difficulty', document.getElementById('gen-difficulty').value);
+    formData.append('count', '3');
+
+    try {
+        const resp = await fetch('/api/generate/questions', { method: 'POST', body: formData });
+        const data = await resp.json();
+
+        if (data.success) {
+            status.innerHTML = '<span class="text-green-600">✅ 成功生成 ' + data.count + ' 道题目！已保存到题库。</span>';
+            if (data.note) status.innerHTML += '<br><span class="text-amber-600">' + data.note + '</span>';
+
+            resultDiv.classList.remove('hidden');
+            listDiv.innerHTML = data.questions.map((q, i) => `
+                <div class="card">
+                    <div class="flex items-start gap-3">
+                        <span class="badge ${q.type === 'single' ? 'bg-blue-100 text-blue-700' : q.type === 'multiple' ? 'bg-purple-100 text-purple-700' : q.type === 'judge' ? 'bg-green-100 text-green-700' : q.type === 'short' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}">
+                            ${({single:'单选',multiple:'多选',judge:'判断',short:'简答',case:'案例分析'})[q.type]}
+                        </span>
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">${i+1}. ${q.stem}</div>
+                            ${q.options && q.options.length > 0 ? `
+                            <div class="mt-2 space-y-1">
+                                ${q.options.map(o => `<div class="text-sm text-gray-600">${o}</div>`).join('')}
+                            </div>` : ''}
+                            <div class="mt-2 p-3 bg-green-50 rounded-lg">
+                                <div class="text-sm font-medium text-green-800">答案：${q.answer}</div>
+                                <div class="text-sm text-green-700 mt-1">${q.explanation}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            status.innerHTML = '<span class="text-red-600">❌ ' + (data.error || '生成失败') + '</span>';
+        }
+    } catch(e) {
+        status.innerHTML = '<span class="text-red-600">❌ 请求失败: ' + e.message + '</span>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🤖 AI 生成题目';
+}
+</script>
+{% endblock %}

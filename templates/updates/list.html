@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}最新知识更新 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">最新知识更新</h1>
+    <p class="mt-2 text-gray-600">围绕课程主题补充最新案例、新闻和技术进展，所有内容标明来源和日期。</p>
+</div>
+
+<!-- Add Update Form -->
+<div class="card mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4" onclick="document.getElementById('add-form').classList.toggle('hidden')" style="cursor:pointer">
+        ➕ 添加知识更新
+    </h2>
+    <form id="add-form" class="hidden space-y-3" action="/updates/add" method="post">
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">标题 *</label>
+                <input type="text" name="title" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">来源</label>
+                <input type="text" name="source" placeholder="如：OpenAI官网" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">内容摘要 *</label>
+            <textarea name="summary" required rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500"></textarea>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+                <input type="date" name="source_date" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">关联章节</label>
+                <select name="related_chapter_id" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                    <option value="0">无</option>
+                    {% for ch in chapters %}
+                    <option value="{{ ch.id }}">{{ ch.title[:25] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">关联概念</label>
+                <input type="text" name="related_concept" placeholder="如：大语言模型" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">与课程关联说明</label>
+            <input type="text" name="relevance_note" placeholder="一句话说明与课程哪个知识点相关" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="btn-primary">添加</button>
+            <button type="button" class="btn-secondary" onclick="document.getElementById('add-form').classList.add('hidden')">取消</button>
+        </div>
+    </form>
+</div>
+
+<!-- Updates List -->
+{% if updates %}
+<div class="space-y-4">
+    {% for u in updates %}
+    <div class="card">
+        <div class="flex items-start justify-between mb-2">
+            <h3 class="font-semibold text-gray-900">{{ u.title }}</h3>
+            <span class="text-xs text-gray-400">{{ u.source_date if u.source_date else '' }}</span>
+        </div>
+        <p class="text-sm text-gray-600 mb-3">{{ u.summary }}</p>
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+            {% if u.source %}
+            <span class="badge bg-gray-100 text-gray-600">📎 {{ u.source }}</span>
+            {% endif %}
+            {% if u.chapter_title %}
+            <span class="badge bg-primary-50 text-primary-700">📖 {{ u.chapter_title[:25] }}</span>
+            {% endif %}
+            {% if u.related_concept %}
+            <span class="badge bg-accent-50 text-accent-700">🔑 {{ u.related_concept }}</span>
+            {% endif %}
+            {% if u.relevance_note %}
+            <span class="text-gray-500">{{ u.relevance_note }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16">
+    <p class="text-xl text-gray-400 mb-2">📭 暂无知识更新</p>
+    <p class="text-gray-400">点击上方"添加知识更新"来补充最新的AI案例和新闻。</p>
+</div>
+{% endif %}
+{% endblock %}

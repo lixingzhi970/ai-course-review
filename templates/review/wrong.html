@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}错题本 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/review/" class="text-sm text-primary-600 hover:underline">← 返回复习中心</a>
+</div>
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">错题本</h1>
+    <p class="mt-2 text-gray-600">记录所有做错的题目，分析薄弱环节，针对性复习。</p>
+</div>
+
+{% if recommendations %}
+<div class="card mb-8 bg-amber-50 border-amber-200">
+    <h2 class="text-lg font-semibold text-amber-900 mb-4">💡 复习建议</h2>
+    <p class="text-sm text-amber-700 mb-4">根据你的错题分布，建议重点复习以下内容：</p>
+    {% for rec in recommendations %}
+    <div class="mb-4 last:mb-0">
+        <div class="font-medium text-amber-900 mb-2">📖 {{ rec.chapter.title }}（{{ rec.chapter.wc }} 道错题）</div>
+        <div class="flex gap-2">
+            <a href="/review/summary?chapter_id={{ rec.chapter.id }}" class="btn-secondary text-xs">看摘要</a>
+            <a href="/practice/quiz?chapter={{ rec.chapter.id }}&count=5" class="btn-primary text-xs">重练本章</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if wrong_questions %}
+<div class="space-y-4">
+    {% for wq in wrong_questions %}
+    <div class="card {{ 'border-l-4 border-l-red-400' if wq.wrong_times >= 2 else '' }}">
+        <div class="flex items-start gap-3">
+            <div>
+                <span class="badge {{ 'bg-blue-100 text-blue-700' if wq.type == 'single' else 'bg-purple-100 text-purple-700' if wq.type == 'multiple' else 'bg-green-100 text-green-700' if wq.type == 'judge' else 'bg-orange-100 text-orange-700' if wq.type == 'short' else 'bg-red-100 text-red-700' }}">
+                    {{ {'single':'单选','multiple':'多选','judge':'判断','short':'简答','case':'案例分析'}[wq.type] }}
+                </span>
+                {% if wq.wrong_times >= 2 %}
+                <span class="badge bg-red-100 text-red-700 ml-1">错了 {{ wq.wrong_times }} 次</span>
+                {% endif %}
+            </div>
+            <div class="flex-1">
+                <div class="font-medium text-gray-900 mb-2">{{ wq.stem }}</div>
+                {% if wq.options and wq.options|length > 0 %}
+                <div class="space-y-1 mb-3">
+                    {% for opt in wq.options %}
+                    <span class="block text-sm {{ 'text-green-600 font-medium' if opt[:1] == wq.answer else 'text-gray-500' }}">
+                        {{ opt }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="p-3 bg-green-50 rounded-lg">
+                        <div class="font-medium text-green-800">✅ 正确答案：{{ wq.answer }}</div>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-lg">
+                        <div class="font-medium text-gray-700">📝 解析</div>
+                        <div class="text-gray-600 mt-1">{{ wq.explanation }}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mt-3">
+                    <span class="text-xs text-gray-400">{{ wq.chapter_title }}</span>
+                    <span class="text-xs text-gray-400">|</span>
+                    <span class="badge {{ 'bg-green-100 text-green-700' if wq.difficulty == '基础' else 'bg-yellow-100 text-yellow-700' if wq.difficulty == '中等' else 'bg-red-100 text-red-700' }}">
+                        {{ wq.difficulty }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16">
+    <p class="text-xl text-gray-400 mb-2">🎉 没有错题记录</p>
+    <p class="text-gray-400 mb-4">继续保持！或者去练习看看自己的掌握情况。</p>
+    <a href="/practice/quiz" class="btn-primary">去答题</a>
+</div>
+{% endif %}
+{% endblock %}

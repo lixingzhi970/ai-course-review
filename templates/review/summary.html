@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}章节摘要 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/review/" class="text-sm text-primary-600 hover:underline">← 返回复习中心</a>
+</div>
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">章节摘要</h1>
+        <p class="mt-2 text-gray-600">快速回顾每章的核心知识点和学习目标。</p>
+    </div>
+    <form action="/review/summary" method="get" class="flex gap-2">
+        <select name="chapter_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500" onchange="this.form.submit()">
+            <option value="0">选择章节</option>
+            {% for ch in chapters %}
+            <option value="{{ ch.id }}" {{ 'selected' if chapter_id == ch.id else '' }}>{{ ch.title[:30] }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+{% if selected %}
+<div class="space-y-6">
+    <!-- Chapter Overview -->
+    <div class="card bg-gradient-to-r from-primary-50 to-white border-primary-100">
+        <h2 class="text-xl font-bold text-gray-900 mb-2">{{ selected.title }}</h2>
+        <p class="text-gray-600">{{ selected.description }}</p>
+    </div>
+
+    <!-- Key Concepts Summary -->
+    {% if concepts %}
+    <div class="card">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">🔑 核心概念</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {% for c in concepts %}
+            <div class="p-3 border border-gray-100 rounded-lg {{ 'bg-amber-50 border-amber-200' if c.is_key else '' }}">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-medium text-gray-900">{{ c.name }}</span>
+                    <span class="badge {{ 'bg-red-100 text-red-700' if c.difficulty == '挑战' else 'bg-blue-100 text-blue-700' if c.difficulty == '中等' else 'bg-green-100 text-green-700' }}">
+                        {{ c.difficulty }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-600">{{ c.explanation[:150] }}{% if c.explanation|length > 150 %}...{% endif %}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Learning Objectives Summary -->
+    {% if objectives %}
+    <div class="card">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">🎯 学习目标检查清单</h3>
+        <div class="space-y-2">
+            {% for obj in objectives %}
+            <label class="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                <input type="checkbox" class="mt-1 rounded" onchange="this.parentElement.classList.toggle('opacity-50')">
+                <div>
+                    <div class="font-medium text-gray-900">{{ obj.content_description }}</div>
+                    <div class="text-sm text-gray-500">{{ obj.mastery }}</div>
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="flex gap-3">
+        <a href="/practice/quiz?chapter={{ chapter_id }}" class="btn-primary">练习本章题目</a>
+        <a href="/knowledge/{{ chapter_id }}" class="btn-secondary">查看知识图谱</a>
+    </div>
+</div>
+{% else %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for ch in chapters %}
+    <a href="?chapter_id={{ ch.id }}" class="card group cursor-pointer">
+        <h3 class="font-semibold text-gray-900 group-hover:text-primary-700">{{ ch.title }}</h3>
+        <p class="text-sm text-gray-500 mt-2">点击查看本章核心知识点和学习目标</p>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

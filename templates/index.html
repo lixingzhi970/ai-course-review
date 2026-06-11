@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}学习仪表盘 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">学习仪表盘</h1>
+    <p class="mt-2 text-gray-600">欢迎回来！以下是你的课程复习概览。</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-primary-600">{{ stats.chapters }}</div>
+        <div class="text-sm text-gray-500 mt-1">课程章节</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-accent-600">{{ stats.concepts }}</div>
+        <div class="text-sm text-gray-500 mt-1">核心概念</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-green-600">{{ stats.questions }}</div>
+        <div class="text-sm text-gray-500 mt-1">题库题目</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-orange-600">{{ stats.updates }}</div>
+        <div class="text-sm text-gray-500 mt-1">最新动态</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Study Progress -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">学习进度</h2>
+        {% if stats.total_attempts > 0 %}
+        <div class="space-y-4">
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">总答题数</span>
+                    <span class="font-medium">{{ stats.total_attempts }} 道</span>
+                </div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">正确率</span>
+                    <span class="font-medium {{ 'text-green-600' if stats.accuracy >= 60 else 'text-red-600' }}">{{ stats.accuracy }}%</span>
+                </div>
+            </div>
+            <div class="bg-gray-100 rounded-full h-3">
+                <div class="bg-green-500 rounded-full h-3 transition-all"
+                     style="width: {{ stats.accuracy }}%"></div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-400">
+            <p class="text-lg mb-2">📝 还没有学习记录</p>
+            <a href="/practice/" class="btn-primary">开始练习</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">快速操作</h2>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="/practice/quiz" class="btn-primary py-4 flex flex-col items-center gap-1">
+                <span class="text-lg">✏️</span>
+                <span>随机练习</span>
+            </a>
+            <a href="/review/summary" class="btn-secondary py-4 flex flex-col items-center gap-1">
+                <span class="text-lg">📝</span>
+                <span>章节摘要</span>
+            </a>
+            <a href="/review/cards" class="btn-secondary py-4 flex flex-col items-center gap-1">
+                <span class="text-lg">🃏</span>
+                <span>概念卡片</span>
+            </a>
+            <a href="/review/wrong" class="btn-secondary py-4 flex flex-col items-center gap-1">
+                <span class="text-lg">📋</span>
+                <span>错题本</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Course Chapters -->
+    <div class="card lg:col-span-2">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">课程章节</h2>
+        <div class="space-y-3">
+            {% for ch in chapters %}
+            <a href="/knowledge/{{ ch.id }}"
+               class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary-200">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold">
+                        {{ ch.order }}
+                    </span>
+                    <div>
+                        <div class="font-medium text-gray-900">{{ ch.title }}</div>
+                        <div class="text-xs text-gray-500">{{ ch.description[:80] }}...</div>
+                    </div>
+                </div>
+                <span class="text-gray-400">→</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Wrong Questions -->
+    {% if wrong_questions %}
+    <div class="card lg:col-span-2">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">最近错题</h2>
+        <div class="space-y-2">
+            {% for wq in wrong_questions %}
+            <div class="flex items-start justify-between p-3 bg-red-50 rounded-lg">
+                <div>
+                    <div class="text-sm font-medium text-gray-900">{{ wq.stem[:80] }}{% if wq.stem|length > 80 %}...{% endif %}</div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="badge bg-red-100 text-red-700">{{ wq.type }}</span>
+                        <span class="badge bg-gray-100 text-gray-600">{{ wq.difficulty }}</span>
+                        <span class="text-xs text-gray-400">{{ wq.chapter_title }}</span>
+                    </div>
+                </div>
+                <a href="/practice/quiz?chapter={{ wq.chapter_id }}" class="text-primary-600 text-sm hover:underline">重练</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI课程复习平台{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a'},
+                        accent: {50:'#f5f3ff',100:'#ede9fe',200:'#ddd6fe',300:'#c4b5fd',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed',700:'#6d28d9',800:'#5b21b6',900:'#4c1d95'},
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card { @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-200; }
+        .card:hover { @apply shadow-md border-gray-200; }
+        .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+        .btn { @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2; }
+        .btn-primary { @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500; }
+        .btn-secondary { @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-300; }
+        .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500; }
+        .btn-accent { @apply btn bg-accent-600 text-white hover:bg-accent-700 focus:ring-accent-500; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen font-sans antialiased">
+    <!-- Sidebar + Main Layout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+            <div class="p-6 border-b border-gray-100">
+                <a href="/" class="text-xl font-bold text-primary-700 hover:text-primary-800 transition-colors">
+                    AI课程复习平台
+                </a>
+                <p class="text-xs text-gray-500 mt-1">人工智能通识基础（大模型篇）</p>
+            </div>
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                {% set nav_items = [
+                    ('/', 'home', '📊 学习仪表盘'),
+                    ('/knowledge/', 'knowledge', '📚 知识库'),
+                    ('/objectives/', 'objectives', '🎯 学习目标对齐'),
+                    ('/practice/', 'practice', '✏️ 练习与出题'),
+                    ('/review/', 'review', '🔄 复习辅助'),
+                    ('/review/summary', 'review', '📝 章节摘要'),
+                    ('/review/cards', 'review', '🃏 概念卡片'),
+                    ('/review/wrong', 'review', '📋 错题本'),
+                    ('/updates/', 'updates', '🔔 最新知识更新'),
+                    ('/import/', 'import', '📥 数据导入'),
+                ] %}
+                {% for href, category, label in nav_items %}
+                <a href="{{ href }}"
+                   class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all
+                          {{ 'bg-primary-50 text-primary-700 border-l-3 border-primary-600' if request.url.path == href and category in request.url.path else 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                    {{ label }}
+                </a>
+                {% endfor %}
+            </nav>
+            <div class="p-4 border-t border-gray-100">
+                <div class="text-xs text-gray-400">AI通识基础 · 大模型篇</div>
+                <div class="text-xs text-gray-400">期末复习平台 v1.0</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="max-w-7xl mx-auto px-6 py-8">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

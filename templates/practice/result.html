@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}答题记录 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/practice/" class="text-sm text-primary-600 hover:underline">← 返回练习页</a>
+</div>
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">答题记录</h1>
+    <p class="mt-2 text-gray-600">最近50条答题记录。</p>
+</div>
+
+{% if records %}
+<!-- Score Summary -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-gray-800">{{ total }}</div>
+        <div class="text-sm text-gray-500 mt-1">总题数</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-green-600">{{ correct }}</div>
+        <div class="text-sm text-gray-500 mt-1">正确</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-3xl font-bold text-red-600">{{ wrong }}</div>
+        <div class="text-sm text-gray-500 mt-1">错误</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-3xl font-bold {{ 'text-green-600' if accuracy >= 60 else 'text-red-600' }}">{{ accuracy }}%</div>
+        <div class="text-sm text-gray-500 mt-1">正确率</div>
+    </div>
+</div>
+
+<div class="card overflow-hidden p-0">
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="bg-gray-50 border-b">
+                <th class="text-left p-3 font-medium text-gray-700">题目</th>
+                <th class="text-left p-3 font-medium text-gray-700">类型</th>
+                <th class="text-left p-3 font-medium text-gray-700">你的答案</th>
+                <th class="text-left p-3 font-medium text-gray-700">正确答案</th>
+                <th class="text-left p-3 font-medium text-gray-700">结果</th>
+                <th class="text-left p-3 font-medium text-gray-700">时间</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in records %}
+            <tr class="border-b last:border-0 hover:bg-gray-50">
+                <td class="p-3 text-gray-900 max-w-xs truncate" title="{{ r.stem }}">{{ r.stem[:50] }}{% if r.stem|length > 50 %}...{% endif %}</td>
+                <td class="p-3">
+                    <span class="badge {{ 'bg-blue-100 text-blue-700' if r.type == 'single' else 'bg-purple-100 text-purple-700' if r.type == 'multiple' else 'bg-green-100 text-green-700' if r.type == 'judge' else 'bg-orange-100 text-orange-700' if r.type == 'short' else 'bg-red-100 text-red-700' }}">
+                        {{ {'single':'单选','multiple':'多选','judge':'判断','short':'简答','case':'案例分析'}[r.type] }}
+                    </span>
+                </td>
+                <td class="p-3 text-gray-600 max-w-[120px] truncate">{{ r.user_answer[:20] }}</td>
+                <td class="p-3 text-gray-600 max-w-[120px] truncate">{{ r.answer[:20] }}</td>
+                <td class="p-3">
+                    <span class="badge {{ 'bg-green-100 text-green-700' if r.is_correct else 'bg-red-100 text-red-700' }}">
+                        {{ '正确' if r.is_correct else '错误' }}
+                    </span>
+                </td>
+                <td class="p-3 text-xs text-gray-400">{{ r.timestamp[:19] if r.timestamp else '' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-16">
+    <p class="text-xl text-gray-400 mb-4">📝 还没有答题记录</p>
+    <a href="/practice/quiz" class="btn-primary">去答题</a>
+</div>
+{% endif %}
+{% endblock %}

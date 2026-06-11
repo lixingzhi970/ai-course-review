@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}答题中 - AI课程复习平台{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/practice/" class="text-sm text-primary-600 hover:underline">← 返回练习页</a>
+</div>
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">答题练习</h1>
+        <p class="text-sm text-gray-500 mt-1">共 {{ total }} 道题</p>
+    </div>
+    <div id="progress-info" class="text-right">
+        <div class="text-sm text-gray-500">进度</div>
+        <div class="text-lg font-bold text-primary-600"><span id="answered-count">0</span> / {{ total }}</div>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="w-full bg-gray-200 rounded-full h-2 mb-8">
+    <div id="progress-bar" class="bg-primary-600 rounded-full h-2 transition-all duration-500" style="width: 0%"></div>
+</div>
+
+<!-- Question Cards -->
+<div id="quiz-container" class="space-y-6">
+    {% for q in questions %}
+    <div class="card question-card" id="q-{{ loop.index }}" data-question-id="{{ q.id }}" data-correct="{{ q.answer }}" data-index="{{ loop.index }}">
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="badge {{ 'bg-blue-100 text-blue-700' if q.type == 'single' else 'bg-purple-100 text-purple-700' if q.type == 'multiple' else 'bg-green-100 text-green-700' if q.type == 'judge' else 'bg-orange-100 text-orange-700' if q.type == 'short' else 'bg-red-100 text-red-700' }}">
+                    {{ {'single':'单选','multiple':'多选','judge':'判断','short':'简答','case':'案例分析'}[q.type] }}
+                </span>
+                <span class="badge {{ 'bg-green-100 text-green-700' if q.difficulty == '基础' else 'bg-yellow-100 text-yellow-700' if q.difficulty == '中等' else 'bg-red-100 text-red-700' }}">
+                    {{ q.difficulty }}
+                </span>
+                <span class="text-xs text-gray-400">{{ q.chapter_title[:20] if q.chapter_title else '' }}</span>
+            </div>
+            <span class="text-sm text-gray-400 font-medium">#{{ loop.index }}</span>
+        </div>
+
+        <div class="mb-4">
+            <p class="text-gray-900 font-medium">{{ q.stem }}</p>
+        </div>
+
+        {% if q.type in ('single', 'multiple', 'judge') and q.options %}
+        <div class="space-y-2" data-answer-area="true">
+            {% set qidx = loop.index %}
+            {% for opt in q.options %}
+            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 cursor-pointer transition-all answer-option">
+                <input type="{{ 'radio' if q.type in ('single', 'judge') else 'checkbox' }}"
+                       name="answer-{{ qidx }}"
+                       value="{{ opt[:1] }}"
+                       class="mt-0.5 answer-input"
+                       onchange="checkAnswer(this)">
+                <span class="text-sm text-gray-700">{{ opt }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        {% elif q.type in ('short', 'case') %}
+        <div data-answer-area="true">
+            <textarea class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 min-h-[100px]"
+                      placeholder="请输入你的答案..."
+                      onblur="submitTextAnswer(this, {{ q.id }})"></textarea>
+            <button class="btn-primary mt-2 text-xs" onclick="submitTextAnswer(this.previousElementSibling, {{ q.id }})">提交答案</button>
+        </div>
+        {% endif %}
+
+        <!-- Feedback Area (hidden initially) -->
+        <div class="feedback hidden mt-4 p-4 rounded-lg"></div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if total == 0 %}
+<div class="text-center py-16">
+    <p class="text-xl text-gray-400 mb-4">📭 题库中没有符合条件的题目</p>
+    <p class="text-gray-400 mb-4">请先回到练习页面，用AI生成一些题目。</p>
+    <a href="/practice/" class="btn-primary">去生成题目</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+let answeredCount = 0;
+
+function updateProgress() {
+    answeredCount = document.querySelectorAll('.question-card.answered').length;
+    document.getElementById('answered-count').textContent = answeredCount;
+    document.getElementById('progress-bar').style.width = (answeredCount / {{ total }} * 100) + '%';
+}
+
+async function submitAnswer(questionId, userAnswer) {
+    try {
+        const resp = await fetch('/practice/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({question_id: questionId, answer: userAnswer})
+        });
+        return await resp.json();
+    } catch(e) {
+        return {error: e.message};
+    }
+}
+
+function checkAnswer(input) {
+    const card = input.closest('.question-card');
+    const answerArea = card.querySelector('[data-answer-area]');
+    const feedback = card.querySelector('.feedback');
+
+    let userAnswer;
+    const type = card.querySelector('.badge').textContent.trim();
+
+    if (type.includes('单选') || type.includes('判断')) {
+        userAnswer = input.value;
+        // Disable all options
+        answerArea.querySelectorAll('input').forEach(i => i.disabled = true);
+    } else if (type.includes('多选')) {
+        const checked = answerArea.querySelectorAll('input:checked');
+        userAnswer = Array.from(checked).map(c => c.value).sort().join('');
+        if (checked.length < 2) return; // Need at least 2 selections
+        answerArea.querySelectorAll('input').forEach(i => i.disabled = true);
+    }
+
+    if (!userAnswer) return;
+
+    submitAnswer(card.dataset.questionId, userAnswer).then(data => {
+        if (data.error) return;
+
+        feedback.classList.remove('hidden');
+        const correct = data.correct;
+
+        if (correct) {
+            feedback.className = 'feedback mt-4 p-4 rounded-lg bg-green-50 border border-green-200';
+            feedback.innerHTML = '<div class="text-green-700 font-medium">✅ 正确！</div><div class="text-green-600 text-sm mt-1">' + data.explanation + '</div>';
+        } else {
+            feedback.className = 'feedback mt-4 p-4 rounded-lg bg-red-50 border border-red-200';
+            feedback.innerHTML = '<div class="text-red-700 font-medium">❌ 错误</div>' +
+                '<div class="text-red-600 text-sm mt-1">你的答案：' + data.user_answer + '</div>' +
+                '<div class="text-green-600 text-sm mt-1">正确答案：' + data.correct_answer + '</div>' +
+                '<div class="text-gray-600 text-sm mt-1">' + data.explanation + '</div>';
+        }
+
+        card.classList.add('answered');
+        updateProgress();
+
+        // Scroll to next question
+        const allCards = document.querySelectorAll('.question-card');
+        const currentIndex = parseInt(card.dataset.index);
+        if (currentIndex < allCards.length) {
+            setTimeout(() => {
+                allCards[currentIndex].scrollIntoView({behavior: 'smooth', block: 'center'});
+            }, 500);
+        } else if (answeredCount >= {{ total }}) {
+            showCompletionMessage();
+        }
+    });
+}
+
+async function submitTextAnswer(textarea, questionId) {
+    const answer = textarea.value.trim();
+    if (!answer) return;
+
+    const card = textarea.closest('.question-card');
+    const feedback = card.querySelector('.feedback');
+
+    const data = await submitAnswer(questionId, answer);
+    if (data.error) return;
+
+    feedback.classList.remove('hidden');
+    feedback.className = 'feedback mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200';
+    feedback.innerHTML = '<div class="text-blue-700 font-medium">📝 参考答案</div>' +
+        '<div class="text-gray-700 text-sm mt-1">' + data.correct_answer + '</div>' +
+        '<div class="text-gray-600 text-sm mt-1">' + data.explanation + '</div>';
+
+    card.classList.add('answered');
+    textarea.disabled = true;
+    textarea.nextElementSibling?.classList.add('hidden');
+    updateProgress();
+
+    if (answeredCount >= {{ total }}) {
+        showCompletionMessage();
+    }
+}
+
+function showCompletionMessage() {
+    const container = document.getElementById('quiz-container');
+    const completeDiv = document.createElement('div');
+    completeDiv.className = 'card text-center py-8 bg-gradient-to-r from-primary-50 to-accent-50';
+    completeDiv.innerHTML = `
+        <div class="text-4xl mb-3">🎉</div>
+        <div class="text-xl font-bold text-gray-900 mb-2">答题完成！</div>
+        <div class="text-gray-600 mb-4">你已完成了全部 ${answeredCount} 道题目</div>
+        <a href="/practice/result" class="btn-primary">查看答题记录</a>
+    `;
+    container.appendChild(completeDiv);
+    completeDiv.scrollIntoView({behavior: 'smooth'});
+}
+</script>
+{% endblock %}
