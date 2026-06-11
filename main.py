@@ -9,7 +9,26 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from database import init_db
 
+import traceback as _tb
+from fastapi.responses import PlainTextResponse
+
 app = FastAPI(title="AI课程复习平台")
+
+
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc: Exception):
+    return PlainTextResponse(
+        f"500 Internal Server Error\n\n{type(exc).__name__}: {exc}\n\n{_tb.format_exc()}",
+        status_code=500,
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_error_handler(request: Request, exc: Exception):
+    return PlainTextResponse(
+        f"500 Internal Server Error\n\n{type(exc).__name__}: {exc}\n\n{_tb.format_exc()}",
+        status_code=500,
+    )
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
