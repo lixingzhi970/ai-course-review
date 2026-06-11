@@ -56,6 +56,26 @@ async def startup():
                 pass
 
 
+@app.get("/debug")
+async def debug():
+    """Diagnostic endpoint to check system health."""
+    import traceback, os
+    result = {
+        "cwd": os.getcwd(),
+        "files": os.listdir(".")[:20],
+        "template_dir_exists": os.path.exists("templates"),
+    }
+    try:
+        from templates_helper import templates, BASE_DIR
+        result["template_base_dir"] = BASE_DIR
+        result["template_files"] = os.listdir(os.path.join(BASE_DIR, "templates"))[:20]
+        result["templates_ok"] = True
+    except Exception as e:
+        result["templates_error"] = str(e)
+        result["traceback"] = traceback.format_exc()
+    return result
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     from templates_helper import templates
