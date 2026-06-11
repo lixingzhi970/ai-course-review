@@ -43,10 +43,18 @@ async def startup():
             seed_data.seed()
             import enrich_data
             try:
-                enrich_data.generate_all_question_types()
                 enrich_data.seed_knowledge_updates()
             except Exception:
                 pass
+            try:
+                import expand_questions
+                expand_questions.expand()
+            except Exception:
+                # Fallback to basic generation
+                try:
+                    enrich_data.generate_all_question_types()
+                except Exception:
+                    pass
     except Exception:
         pass
     finally:
