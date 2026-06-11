@@ -15,7 +15,7 @@ app = FastAPI(title="AI课程复习平台")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Templates are loaded via Jinja2 in each module
-from routes import chapters, questions, objectives, review, updates, import_data, generate
+from routes import chapters, questions, objectives, review, updates, import_data, generate, exam
 
 app.include_router(chapters.router)
 app.include_router(questions.router)
@@ -24,6 +24,7 @@ app.include_router(review.router)
 app.include_router(updates.router)
 app.include_router(import_data.router)
 app.include_router(generate.router)
+app.include_router(exam.router)
 
 
 @app.on_event("startup")

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}期末考试卷 - AI课程复习平台{% endblock %}
+
+{% block head %}
+<style>
+    @media print {
+        aside, .no-print { display: none !important; }
+        main { margin: 0 !important; padding: 0 !important; }
+        body { background: white !important; }
+        .card { box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="no-print mb-6 flex items-center justify-between">
+    <div>
+        <a href="/exam/" class="text-sm text-primary-600 hover:underline">← 重新组卷</a>
+    </div>
+    <div class="flex gap-2">
+        <button onclick="window.print()" class="btn-primary text-sm">🖨️ 打印试卷</button>
+        <a href="/exam/answer?single={{ single }}&multiple={{ multiple }}&judge={{ judge }}&short={{ short }}&case={{ case }}&chapter_id={{ chapter_id }}&difficulty={{ difficulty }}" target="_blank" class="btn-secondary text-sm">📋 查看答案</a>
+    </div>
+</div>
+
+<!-- Exam Header -->
+<div class="text-center mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">《人工智能通识基础（大模型篇）》</h1>
+    <h2 class="text-xl font-semibold text-gray-700 mt-2">期末考试卷</h2>
+    <div class="flex justify-center gap-8 mt-4 text-sm text-gray-500">
+        <span>总分：<strong class="text-primary-600">{{ total_score }}分</strong></span>
+        <span>题量：<strong>{{ total_count }}题</strong></span>
+        <span>时间：120分钟</span>
+        <span>形式：闭卷</span>
+    </div>
+    <div class="mt-4 text-sm text-gray-400">
+        姓名：__________ &nbsp;&nbsp; 学号：__________ &nbsp;&nbsp; 得分：__________
+    </div>
+</div>
+
+<!-- Questions -->
+{% set ns = namespace(section_started=false, current_type='') %}
+{% for q in questions %}
+    {% if q.type != ns.current_type %}
+        {% set ns.current_type = q.type %}
+        {% set ns.section_started = true %}
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-gray-800 border-b-2 border-primary-300 pb-2 mb-4">
+                {{ {'single':'一、单选题','multiple':'二、多选题','judge':'三、判断题','short':'四、简答题','case':'五、案例分析题'}[q.type] }}
+                <span class="text-sm font-normal text-gray-400 ml-2">
+                    ({{ {'single':'每题2分','multiple':'每题3分','judge':'每题2分','short':'每题8分','case':'每题15分'}[q.type] }})
+                </span>
+            </h3>
+        </div>
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="flex items-start gap-3">
+            <span class="font-bold text-primary-600 min-w-[28px]">{{ q._index }}.</span>
+            <div class="flex-1">
+                <p class="text-gray-900 mb-3">{{ q.stem }}</p>
+
+                {% if q.type in ('single', 'multiple', 'judge') and q.options %}
+                <div class="space-y-1 ml-2">
+                    {% for opt in q.options %}
+                    <div class="text-gray-600 text-sm py-1">{{ opt }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if q.type in ('short', 'case') %}
+                <div class="border border-dashed border-gray-300 rounded-lg bg-gray-50" style="min-height: {{ '120px' if q.type == 'short' else '200px' }};"></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<div class="no-print text-center py-8 mt-8 border-t border-gray-200">
+    <div class="flex justify-center gap-3">
+        <button onclick="window.print()" class="btn-primary">🖨️ 打印试卷</button>
+        <a href="/exam/answer?single={{ single }}&multiple={{ multiple }}&judge={{ judge }}&short={{ short }}&case={{ case }}&chapter_id={{ chapter_id }}&difficulty={{ difficulty }}" target="_blank" class="btn-secondary">📋 查看答案</a>
+        <a href="/exam/" class="btn-secondary">🔄 重新组卷</a>
+    </div>
+    <p class="text-xs text-gray-400 mt-4">提示：点击"打印试卷"可保存为PDF</p>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}参考答案 - 期末考试{% endblock %}
+
+{% block head %}
+<style>
+    @media print {
+        aside, .no-print { display: none !important; }
+        main { margin: 0 !important; padding: 0 !important; }
+        body { background: white !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="no-print mb-6 flex items-center justify-between">
+    <div>
+        <a href="/exam/" class="text-sm text-primary-600 hover:underline">← 返回组卷</a>
+    </div>
+    <button onclick="window.print()" class="btn-primary text-sm">🖨️ 打印答案</button>
+</div>
+
+<div class="text-center mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">《人工智能通识基础（大模型篇）》</h1>
+    <h2 class="text-xl font-semibold text-gray-700 mt-2">期末考试 — 参考答案</h2>
+</div>
+
+{% for q in questions %}
+<div class="card mb-4">
+    <div class="flex items-start gap-3">
+        <span class="font-bold text-primary-600 min-w-[28px]">{{ q._index }}.</span>
+        <div class="flex-1">
+            <p class="text-gray-900 mb-2">{{ q.stem }}</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                <div class="p-3 bg-green-50 rounded-lg">
+                    <span class="text-xs font-medium text-green-600">✅ 正确答案</span>
+                    <p class="text-green-800 font-medium mt-1">{{ q.answer }}</p>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-lg">
+                    <span class="text-xs font-medium text-blue-600">📝 解析</span>
+                    <p class="text-blue-800 text-sm mt-1">{{ q.explanation }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                <span>{{ type_labels[q.type] }}</span>
+                <span>|</span>
+                <span>{{ q.difficulty }}</span>
+                {% if q.source %}
+                <span>|</span>
+                <span>{{ q.source }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<div class="no-print text-center py-8 mt-8">
+    <button onclick="window.print()" class="btn-primary">🖨️ 打印答案</button>
+</div>
+{% endblock %}

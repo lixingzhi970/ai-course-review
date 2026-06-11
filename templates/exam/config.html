@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}组卷 - 期末考试{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">期末考试组卷</h1>
+    <p class="mt-2 text-gray-600">自定义题型数量、难度和章节范围，一键生成完整试卷。</p>
+</div>
+
+<form action="/exam/paper" method="get" class="space-y-8">
+    <!-- Quick Presets -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">快速预设</h2>
+        <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="preset('quick')" class="btn-secondary text-sm">快速测验 (10题)</button>
+            <button type="button" onclick="preset('standard')" class="btn-secondary text-sm">标准测试 (16题)</button>
+            <button type="button" onclick="preset('full')" class="btn-secondary text-sm">完整考卷 (25题)</button>
+            <button type="button" onclick="preset('final')" class="btn-primary text-sm">期末考试模拟 (40题)</button>
+        </div>
+    </div>
+
+    <!-- Question Type Distribution -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">题型分布</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">单选题数量</label>
+                <input type="number" name="single" id="qt-single" value="5" min="0" max="30" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                <span class="text-xs text-gray-400">每题2分</span>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">多选题数量</label>
+                <input type="number" name="multiple" id="qt-multiple" value="3" min="0" max="20" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                <span class="text-xs text-gray-400">每题3分</span>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">判断题数量</label>
+                <input type="number" name="judge" id="qt-judge" value="5" min="0" max="30" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                <span class="text-xs text-gray-400">每题2分</span>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">简答题数量</label>
+                <input type="number" name="short" id="qt-short" value="2" min="0" max="10" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                <span class="text-xs text-gray-400">每题8分</span>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">案例分析题数量</label>
+                <input type="number" name="case" id="qt-case" value="1" min="0" max="5" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                <span class="text-xs text-gray-400">每题15分</span>
+            </div>
+            <div class="flex items-end">
+                <div class="w-full p-3 bg-gray-50 rounded-lg text-center">
+                    <span class="text-2xl font-bold text-primary-600" id="total-score">0</span>
+                    <span class="text-sm text-gray-500">总分</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">筛选条件</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">章节范围</label>
+                <select name="chapter_id" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                    <option value="0">全部章节</option>
+                    {% for ch in chapters %}
+                    <option value="{{ ch.id }}">{{ ch.title[:40] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">难度筛选</label>
+                <select name="difficulty" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+                    <option value="">全部难度</option>
+                    <option value="基础">基础</option>
+                    <option value="中等">中等</option>
+                    <option value="挑战">挑战</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex gap-3">
+        <button type="submit" class="btn-primary text-lg px-8 py-3">生成试卷</button>
+        <button type="button" onclick="openAnswer()" class="btn-secondary text-lg px-8 py-3">仅看答案</button>
+    </div>
+</form>
+
+<script>
+function calcScore() {
+    let s = parseInt(document.getElementById('qt-single').value || 0) * 2;
+    s += parseInt(document.getElementById('qt-multiple').value || 0) * 3;
+    s += parseInt(document.getElementById('qt-judge').value || 0) * 2;
+    s += parseInt(document.getElementById('qt-short').value || 0) * 8;
+    s += parseInt(document.getElementById('qt-case').value || 0) * 15;
+    document.getElementById('total-score').textContent = s;
+}
+document.querySelectorAll('input[type=number]').forEach(i => i.addEventListener('input', calcScore));
+calcScore();
+
+function preset(type) {
+    const presets = {
+        quick:    [5, 2, 3, 0, 0],
+        standard: [5, 3, 5, 2, 1],
+        full:     [10, 5, 5, 3, 2],
+        final:    [15, 5, 10, 5, 5],
+    };
+    const vals = presets[type];
+    ['single','multiple','judge','short','case'].forEach((id, i) => {
+        document.getElementById('qt-' + id).value = vals[i];
+    });
+    calcScore();
+}
+
+function openAnswer() {
+    const params = new URLSearchParams(window.location.search);
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input[name], select[name]');
+    inputs.forEach(i => { if (i.value) params.set(i.name, i.value); });
+    window.open('/exam/answer?' + params.toString(), '_blank');
+}
+</script>
+{% endblock %}
