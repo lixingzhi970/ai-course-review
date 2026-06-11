@@ -85,7 +85,7 @@ async def debug():
         "template_dir_exists": os.path.exists("templates"),
     }
     try:
-        from templates_helper import templates, BASE_DIR
+        from templates_helper import render, BASE_DIR
         result["template_base_dir"] = BASE_DIR
         result["template_files"] = os.listdir(os.path.join(BASE_DIR, "templates"))[:20]
         result["templates_ok"] = True
@@ -99,8 +99,9 @@ async def debug():
         db = get_db()
         chapters = db.execute("SELECT * FROM chapters ORDER BY \"order\"").fetchall()
         db.close()
-        html = templates.get_template("index.html").render({
+        render("index.html", {
             "request": {"url": type('obj', (object,), {"path": "/"})()},
+            "active_page": "home",
             "stats": {"chapters": 9, "questions": 26, "concepts": 26, "updates": 8, "total_attempts": 0, "accuracy": 0},
             "chapters": chapters,
             "wrong_questions": [],
@@ -115,7 +116,7 @@ async def debug():
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    from templates_helper import templates
+    from templates_helper import render
     from database import get_db
     db = get_db()
     try:
@@ -152,7 +153,7 @@ async def index(request: Request):
         "accuracy": accuracy,
     }
 
-    return templates.TemplateResponse("index.html", {
+    return render("index.html", {
         "request": request,
         "active_page": "home",
         "stats": stats,

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse
-from templates_helper import templates
+from templates_helper import render
 from database import get_db
 import json
 import random
@@ -26,7 +26,7 @@ async def review_home(request: Request):
         """).fetchall()
     finally:
         db.close()
-    return templates.TemplateResponse("review/home.html", {
+    return render("review/home.html", {
         "request": request,
         "active_page": "('review', 'review')",
         "chapters": chapters,
@@ -55,7 +55,7 @@ async def chapter_summaries(request: Request, chapter_id: int = 0):
             ).fetchall()
     finally:
         db.close()
-    return templates.TemplateResponse("review/summary.html", {
+    return render("review/summary.html", {
         "request": request,
         "active_page": "('review', 'review')",
         "chapters": chapters,
@@ -80,7 +80,7 @@ async def concept_cards(request: Request, chapter_id: int = 0):
         concepts = db.execute(query, params).fetchall()
     finally:
         db.close()
-    return templates.TemplateResponse("review/cards.html", {
+    return render("review/cards.html", {
         "request": request,
         "active_page": "('review', 'review')",
         "chapters": chapters,
@@ -126,7 +126,7 @@ async def wrong_questions(request: Request):
         wd["options"] = json.loads(w["options"]) if w["options"] else []
         wrong_with_options.append(wd)
 
-    return templates.TemplateResponse("review/wrong.html", {
+    return render("review/wrong.html", {
         "request": request,
         "active_page": "('review', 'review')",
         "wrong_questions": wrong_with_options,

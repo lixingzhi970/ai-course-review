@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
-from templates_helper import templates
+from templates_helper import render
 from database import get_db
 import json
 
@@ -20,7 +20,7 @@ async def objectives_list(request: Request):
         """).fetchall()
     finally:
         db.close()
-    return templates.TemplateResponse("objectives/list.html", {
+    return render("objectives/list.html", {
         "request": request,
         "active_page": "('objectives', 'objectives')",
         "chapters": chapters,

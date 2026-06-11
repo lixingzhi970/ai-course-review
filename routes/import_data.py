@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from templates_helper import templates
+from templates_helper import render
 from database import get_db
 import json
 import os
@@ -24,7 +24,7 @@ async def import_page(request: Request):
     if os.path.exists(COURSEWARE_DIR):
         pdf_files = sorted([f for f in os.listdir(COURSEWARE_DIR) if f.endswith('.pdf')])
 
-    return templates.TemplateResponse("import/index.html", {
+    return render("import/index.html", {
         "request": request,
         "active_page": "('import', 'import')",
         "chapters": chapters,

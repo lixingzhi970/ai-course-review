@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from templates_helper import templates
+from templates_helper import render
 from database import get_db
 import json
 
@@ -20,7 +20,7 @@ async def knowledge_list(request: Request):
         """).fetchall()
     finally:
         db.close()
-    return templates.TemplateResponse("knowledge/list.html", {
+    return render("knowledge/list.html", {
         "request": request,
         "active_page": "('knowledge', 'knowledge')",
         "chapters": chapters,
@@ -67,7 +67,7 @@ async def chapter_detail(request: Request, chapter_id: int):
         for rid in c["related_ids"]:
             mindmap["edges"].append({"from": c["id"], "to": rid})
 
-    return templates.TemplateResponse("knowledge/detail.html", {
+    return render("knowledge/detail.html", {
         "request": request,
         "active_page": "('knowledge', 'knowledge')",
         "chapter": chapter,

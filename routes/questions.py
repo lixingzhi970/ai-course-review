@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
-from templates_helper import templates
+from templates_helper import render
 from database import get_db
 import json
 import time
@@ -23,7 +23,7 @@ async def practice_home(request: Request):
         }
     finally:
         db.close()
-    return templates.TemplateResponse("practice/home.html", {
+    return render("practice/home.html", {
         "request": request,
         "active_page": "('practice', 'practice')",
         "chapters": chapters,
@@ -64,7 +64,7 @@ async def quiz_page(request: Request, chapter: int = 0, type: str = "", difficul
         qd["chapter_title"] = chapter_map.get(q["chapter_id"], "")
         questions_json.append(qd)
 
-    return templates.TemplateResponse("practice/quiz.html", {
+    return render("practice/quiz.html", {
         "request": request,
         "active_page": "('practice', 'practice')",
         "questions": questions_json,
@@ -125,7 +125,7 @@ async def quiz_result(request: Request):
     wrong = total - correct
     accuracy = round(correct / total * 100, 1) if total > 0 else 0
 
-    return templates.TemplateResponse("practice/result.html", {
+    return render("practice/result.html", {
         "request": request,
         "active_page": "('practice', 'practice')",
         "records": records,

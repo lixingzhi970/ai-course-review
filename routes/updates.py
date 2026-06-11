@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from templates_helper import templates
+from templates_helper import render
 from database import get_db
 
 router = APIRouter(prefix="/updates", tags=["updates"])
@@ -19,7 +19,7 @@ async def updates_list(request: Request):
         chapters = db.execute("SELECT id, title FROM chapters ORDER BY \"order\"").fetchall()
     finally:
         db.close()
-    return templates.TemplateResponse("updates/list.html", {
+    return render("updates/list.html", {
         "request": request,
         "active_page": "('updates', 'updates')",
         "updates": updates,
