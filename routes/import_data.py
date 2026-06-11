@@ -26,6 +26,7 @@ async def import_page(request: Request):
 
     return templates.TemplateResponse("import/index.html", {
         "request": request,
+        "active_page": "('import', 'import')",
         "chapters": chapters,
         "pdf_files": pdf_files,
         "courseware_dir": COURSEWARE_DIR,

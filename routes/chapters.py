@@ -22,6 +22,7 @@ async def knowledge_list(request: Request):
         db.close()
     return templates.TemplateResponse("knowledge/list.html", {
         "request": request,
+        "active_page": "('knowledge', 'knowledge')",
         "chapters": chapters,
     })
 
@@ -68,6 +69,7 @@ async def chapter_detail(request: Request, chapter_id: int):
 
     return templates.TemplateResponse("knowledge/detail.html", {
         "request": request,
+        "active_page": "('knowledge', 'knowledge')",
         "chapter": chapter,
         "concepts": concept_list,
         "objectives": objectives,

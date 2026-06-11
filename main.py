@@ -135,6 +135,7 @@ async def index(request: Request):
 
     return templates.TemplateResponse("index.html", {
         "request": request,
+        "active_page": "home",
         "stats": stats,
         "chapters": chapters_list,
         "wrong_questions": wrong_questions,

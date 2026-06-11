@@ -25,6 +25,7 @@ async def practice_home(request: Request):
         db.close()
     return templates.TemplateResponse("practice/home.html", {
         "request": request,
+        "active_page": "('practice', 'practice')",
         "chapters": chapters,
         "counts": counts,
     })
@@ -65,6 +66,7 @@ async def quiz_page(request: Request, chapter: int = 0, type: str = "", difficul
 
     return templates.TemplateResponse("practice/quiz.html", {
         "request": request,
+        "active_page": "('practice', 'practice')",
         "questions": questions_json,
         "total": len(questions_json),
     })
@@ -125,6 +127,7 @@ async def quiz_result(request: Request):
 
     return templates.TemplateResponse("practice/result.html", {
         "request": request,
+        "active_page": "('practice', 'practice')",
         "records": records,
         "total": total,
         "correct": correct,

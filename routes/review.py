@@ -28,6 +28,7 @@ async def review_home(request: Request):
         db.close()
     return templates.TemplateResponse("review/home.html", {
         "request": request,
+        "active_page": "('review', 'review')",
         "chapters": chapters,
         "total_practice": total_practice,
         "wrong_count": wrong_count,
@@ -56,6 +57,7 @@ async def chapter_summaries(request: Request, chapter_id: int = 0):
         db.close()
     return templates.TemplateResponse("review/summary.html", {
         "request": request,
+        "active_page": "('review', 'review')",
         "chapters": chapters,
         "selected": selected,
         "concepts": concepts,
@@ -80,6 +82,7 @@ async def concept_cards(request: Request, chapter_id: int = 0):
         db.close()
     return templates.TemplateResponse("review/cards.html", {
         "request": request,
+        "active_page": "('review', 'review')",
         "chapters": chapters,
         "concepts": concepts,
         "chapter_id": chapter_id,
@@ -125,6 +128,7 @@ async def wrong_questions(request: Request):
 
     return templates.TemplateResponse("review/wrong.html", {
         "request": request,
+        "active_page": "('review', 'review')",
         "wrong_questions": wrong_with_options,
         "recommendations": recommendations,
     })

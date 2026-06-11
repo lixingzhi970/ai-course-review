@@ -22,6 +22,7 @@ async def objectives_list(request: Request):
         db.close()
     return templates.TemplateResponse("objectives/list.html", {
         "request": request,
+        "active_page": "('objectives', 'objectives')",
         "chapters": chapters,
         "objectives": objectives,
     })

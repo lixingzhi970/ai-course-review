@@ -21,6 +21,7 @@ async def updates_list(request: Request):
         db.close()
     return templates.TemplateResponse("updates/list.html", {
         "request": request,
+        "active_page": "('updates', 'updates')",
         "updates": updates,
         "chapters": chapters,
     })
