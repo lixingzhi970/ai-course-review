@@ -5,9 +5,11 @@
 <style>
     @media print {
         aside, .no-print { display: none !important; }
-        main { margin: 0 !important; padding: 0 !important; }
+        html, body, .flex.h-screen { height: auto !important; overflow: visible !important; }
+        main { margin: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; overflow: visible !important; }
         body { background: white !important; }
         .card { box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid; }
+        * { overflow: visible !important; }
     }
 </style>
 {% endblock %}
