@@ -58,9 +58,8 @@ async def startup():
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    from fastapi.templating import Jinja2Templates
+    from templates_helper import templates
     from database import get_db
-    templates = Jinja2Templates(directory="templates")
     db = get_db()
     try:
         chapters_count = db.execute("SELECT COUNT(*) as c FROM chapters").fetchone()["c"]

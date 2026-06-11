@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Request, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+from templates_helper import templates
 from database import get_db
 import json
 import os
 
 router = APIRouter(prefix="/import", tags=["import"])
-templates = Jinja2Templates(directory="templates")
 
 # Default courseware directory
 COURSEWARE_DIR = "/Users/linxizhou/Desktop/人工智能基础D/课件"

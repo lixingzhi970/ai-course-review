@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
+from templates_helper import templates
 from database import get_db
 import json
 
 router = APIRouter(prefix="/objectives", tags=["objectives"])
-templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/", response_class=HTMLResponse)
