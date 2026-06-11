@@ -65,6 +65,30 @@ async def startup():
                 pass
 
 
+@app.get("/reset-db")
+async def reset_db():
+    """Force re-seed the database (for Railway fresh start)."""
+    from database import get_db
+    db = get_db()
+    try:
+        db.execute("DELETE FROM study_records")
+        db.execute("DELETE FROM questions")
+        db.execute("DELETE FROM knowledge_updates")
+        db.execute("DELETE FROM learning_objectives")
+        db.execute("DELETE FROM concepts")
+        db.execute("DELETE FROM chapters")
+        db.commit()
+    finally:
+        db.close()
+    import seed_data
+    seed_data.seed()
+    import expand_questions
+    expand_questions.expand()
+    import enrich_data
+    enrich_data.seed_knowledge_updates()
+    return {"status": "ok", "message": "数据库已重置并重新填充"}
+
+
 @app.get("/debug")
 async def debug():
     """Diagnostic endpoint to check system health."""

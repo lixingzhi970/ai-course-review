@@ -70,6 +70,33 @@ async def exam_paper(
             params.append(count)
 
             questions = db.execute(query, params).fetchall()
+
+            # If not enough, generate more on-the-fly
+            if len(questions) < count:
+                needed = count - len(questions)
+                available = db.execute("SELECT COUNT(*) as c FROM questions WHERE type = ?", (qtype,)).fetchone()["c"]
+                if available < count:
+                    from routes.generate import generate_one_template_question
+                    concepts = db.execute(
+                        "SELECT c.*, ch.title as chapter_title FROM concepts c JOIN chapters ch ON c.chapter_id = ch.id" +
+                        (" WHERE c.chapter_id = ?" if chapter_id > 0 else ""),
+                        (chapter_id,) if chapter_id > 0 else ()
+                    ).fetchall()
+                    for ci in range(min(needed, len(concepts))):
+                        c = concepts[ci % len(concepts)]
+                        q = generate_one_template_question(dict(c), qtype, difficulty or "基础", c["chapter_title"])
+                        if q:
+                            db.execute(
+                                "INSERT INTO questions (type, stem, options, answer, explanation, chapter_id, difficulty, source) VALUES (?,?,?,?,?,?,?,?)",
+                                (q["type"], q["stem"], json.dumps(q.get("options", []), ensure_ascii=False),
+                                 q["answer"], q.get("explanation", ""), c["chapter_id"],
+                                 q.get("difficulty", difficulty or "基础"), q.get("source", "")),
+                            )
+                            q["_index"] = len(selected) + 1
+                            q["options"] = q.get("options", [])
+                            selected.append(q)
+                    db.commit()
+
             for i, q in enumerate(questions):
                 qd = dict(q)
                 qd["options"] = json.loads(q["options"]) if q["options"] else []
