@@ -29,6 +29,29 @@ app.include_router(generate.router)
 @app.on_event("startup")
 async def startup():
     init_db()
+    # Auto-seed on first run (e.g. Render's ephemeral filesystem)
+    from database import get_db
+    db = get_db()
+    try:
+        count = db.execute("SELECT COUNT(*) as c FROM chapters").fetchone()["c"]
+        if count == 0:
+            db.close()
+            import seed_data
+            seed_data.seed()
+            try:
+                import enrich_data
+                enrich_data.generate_all_question_types()
+                enrich_data.seed_knowledge_updates()
+                enrich_data.import_all_pdfs()
+            except Exception as e:
+                print(f"Enrichment skipped (e.g. PDF dir not available): {e}")
+        else:
+            db.close()
+    except Exception:
+        try:
+            db.close()
+        except:
+            pass
 
 
 @app.get("/", response_class=HTMLResponse)
