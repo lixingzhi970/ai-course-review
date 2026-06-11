@@ -53,7 +53,7 @@ async def startup():
 
 @app.get("/reset-db")
 async def reset_db():
-    """Force re-seed the database (for Railway fresh start)."""
+    """Force re-seed the database."""
     from database import get_db
     db = get_db()
     try:
@@ -68,11 +68,7 @@ async def reset_db():
         db.close()
     import seed_data
     seed_data.seed()
-    import expand_questions
-    expand_questions.expand()
-    import enrich_data
-    enrich_data.seed_knowledge_updates()
-    return {"status": "ok", "message": "数据库已重置并重新填充"}
+    return {"status": "ok", "message": "数据库已重置"}
 
 
 @app.get("/debug")
